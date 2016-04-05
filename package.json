@@ -20,16 +20,18 @@
     "grunt-sails-linker": "~0.10.1",
     "grunt-sync": "0.2.4",
     "include-all": "~0.1.6",
+    "mocha": "^2.4.5",
     "rc": "1.0.1",
     "redis": "^2.6.0-1",
     "sails": "~0.12.0",
     "sails-disk": "~0.10.9",
-    "sails-mongo": "^0.12.0"
+    "sails-mongo": "^0.12.0",
+    "uuid": "^2.0.1"
   },
   "scripts": {
     "debug": "node debug app.js",
     "start": "node app.js",
-    "test": "node ./node_modules/mocha/bin/mocha test/bootstrap.test.js test/integration/**/*.test.js"
+    "test": "node ./node_modules/mocha/bin/mocha test/bootstrap.test.js test/api/**/*.test.js"
   },
   "main": "app.js",
   "repository": {
@@ -37,5 +39,8 @@
     "url": "git://github.com/root/shopping-cart-api.git"
   },
   "author": "root",
-  "license": ""
+  "license": "",
+  "devDependencies": {
+    "supertest": "^1.2.0"
+  }
 }

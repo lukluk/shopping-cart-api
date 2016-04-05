@@ -36,12 +36,15 @@ module.exports.routes = {
     view: 'homepage'
   },
   'POST /cart' :'CartController.addItem',
+  'PUT /cart/:itemId' :'CartController.updateItem',
   'GET /cart' :'CartController.getList',
-  'GET /cart/:itemId' :'CartController.getList',  
-  'DELETE /cart/:itemId' :'CartController.removeItem',  
-  'DELETE /cart' :'CartController.removeAllItem',  
-  'PUT /cart/:itemId' :'CartController.updateItem',  
-  
+  'GET /cart/:itemId' :'CartController.getItemDetail',
+  'DELETE /cart/:itemId' :'CartController.removeItem',
+  'DELETE /cart' :'CartController.removeAllItem',
+  'GET /cart/order' :'CartController.order',
+  'GET /cart/quote' :'CartController.getQuote',
+  'GET /cart/applyCouponCode/:couponCode' :'CartController.applyCouponCode',
+
   /***************************************************************************
   *                                                                          *
   * Custom routes here...                                                    *

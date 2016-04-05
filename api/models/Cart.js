@@ -8,7 +8,15 @@
 module.exports = {
 
   attributes: {
-
+    sessionId: {
+      type: 'string'
+    },
+    items: {
+      collection: 'CartItem'
+    },
+    quote: {
+      model:'Quote',
+      unique: true
+    }
   }
 };
-
