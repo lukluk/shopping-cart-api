@@ -35,15 +35,19 @@ module.exports.routes = {
   '/': {
     view: 'homepage'
   },
-  'POST /cart' :'CartController.addItem',
-  'PUT /cart/:itemId' :'CartController.updateItem',
-  'GET /cart' :'CartController.getList',
-  'GET /cart/:itemId' :'CartController.getItemDetail',
-  'DELETE /cart/:itemId' :'CartController.removeItem',
-  'DELETE /cart' :'CartController.removeAllItem',
-  'GET /cart/order' :'CartController.order',
-  'GET /cart/quote' :'CartController.getQuote',
-  'GET /cart/applyCouponCode/:couponCode' :'CartController.applyCouponCode',
+'POST /cart': 'CartController.addItem',
+'PUT /cart/:itemId': 'CartController.updateItem',
+'GET /cart': 'CartController.getList',
+'GET /cart/:itemId': 'CartController.getItemDetail',
+'DELETE /cart/:itemId': 'CartController.removeItem',
+'DELETE /cart': 'CartController.clearCart',
+'GET /applyCouponCode/:couponCode': 'CartController.applyCouponCode',
+
+/*
+RESTfull available for
+/Order,/Coupon,/Product
+
+*/
 
   /***************************************************************************
   *                                                                          *

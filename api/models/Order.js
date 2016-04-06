@@ -9,7 +9,7 @@ module.exports = {
 
   attributes: {
     items: {
-      collection: 'CartItem',
+      type: 'json'
     },
     quote: {
       model: 'Quote',

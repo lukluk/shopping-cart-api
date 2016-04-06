@@ -6,10 +6,15 @@
  */
 
 module.exports = {
-  getPrice: function(product,currency) {
+  getPrice: function(product, currency) {
     currency = currency ? currency : 'IDR'
-    var price = product.price.filter(function(p){ return p.currency == currency })
-    return price.amount
+    var price = product.price.filter(function(p) {
+      return p.currency == currency
+    })    
+    if (!price) {
+      return 0
+    } else
+      return price[0].amount
   },
   attributes: {
     SKU: {

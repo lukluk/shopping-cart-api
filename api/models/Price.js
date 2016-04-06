@@ -6,7 +6,7 @@
  */
 
 module.exports = {
-
+  populateFields: ['amount','currency'],
   attributes: {
     amount: {
       type: 'integer'

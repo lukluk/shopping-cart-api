@@ -4,43 +4,7 @@
  * @description :: Server-side logic for managing carts
  * @help        :: See http://sailsjs.org/#!/documentation/concepts/Controllers
  */
-var quoteLib = require(__dirname + '/quote.js')
 
-function _updateQuote(session, cart, callback) {
-  if (!cart.quote) {
-    quoteLib.getQuote(session, cart.items, function(quote) {
-      Quote.create(quote).then(function(q) {
-        console.log('quote', q)
-        var itemIds = []
-        cart.items.forEach(function(item) {
-          itemIds.push(item.id)
-        })
-        Cart.create({
-          items: itemIds,
-          quote: q.id,
-          sessionId: session.sessionId
-        }).then(function(cart) {
-          callback && callback(cart)
-        })
-      })
-    })
-  } else {
-    quoteLib.getQuote(session, cart.items, function(quote) {
-      Quote.update({
-        id: cart.quote.id
-      }, quote).then(function(q) {
-        Cart.findOne({
-            sessionId: req.session.sessionId
-          })
-          .populate('items')
-          .populate('quote')
-          .then(function(newcart) {
-            callback && callback(newcart)
-          })
-      })
-    })
-  }
-}
 
 module.exports = {
   addItem: function(req, res) {
@@ -58,67 +22,115 @@ module.exports = {
       qty: qty
     }
     Cart.findOne({
-        sessionId: req.session.sessionId
+        sessionId: req.session.id
       })
-      .populate('items')
-      .populate('quote')
+      .populate('items', {
+        select: CartItem.populateFields
+      })
+      .populate('quote', {
+        select: Quote.populateFields
+      })
       .then(function(cart) {
-        console.log('cart', cart)
         if (!cart) {
           cart = {}
           cart.items = []
           cart.items.push(item)
         } else {
           var newItems = []
+          var found = false
           cart.items.forEach(function(itemCart) {
             if (item.SKU == itemCart.SKU) {
-              itemCart.qty = itemCart.qty + item.qty
+              itemCart.qty = parseInt(itemCart.qty) + parseInt(item.qty)
+              found = true
             }
             newItems.push(itemCart)
           })
+          if (!found) newItems.push(item)
           cart.items = newItems
         }
-        _updateQuote(req.session, cart, function(data) {
+        Cart.updateCart(req.session, cart, function(data) {
           res.json(data)
         })
       })
   },
   getList: function(req, res) {
     Cart.findOne({
-      sessionId: req.session.sessionId
-    }).then(function(cart) {
-      if (!cart) res.json([])
-      else res.json(cart.items)
-    })
+        sessionId: req.session.id
+      })
+      .populate('items', {
+        select: CartItem.populateFields
+      })
+      .populate('quote', {
+        select: Quote.populateFields
+      })
+      .then(function(cart) {
+        if (!cart) res.json([])
+        else {
+          CartItem.populateItems(cart.items, function() {
+            res.json(cart)
+          })
+        }
+      })
   },
   updateItem: function(req, res) {
+    var cart = {}
+    CartItem.findOne({
+      id: req.params.itemId
+    }).then(function(item) {
+      if (!item) {
+        res.json({
+          error: true,
+          message: 'itemid notfound'
+        })
+        return false
+      }
+      item.qty = req.body.qty ? req.body.qty : item.qty
+      item.options = req.body.options ? req.body.options : item.options
 
-    res.json({
-      id: req.session.id
+      cart.items = []
+      cart.items.push(item)
+      Cart.updateCart(req.session, cart, function(data) {
+        res.json(data)
+      })
+    })
+
+  },
+  updateCart: function(req, res) {
+    var cart = {}
+    cart.items = req.body.items
+    Cart.updateCart(req.session, cart, function(data) {
+      res.json(data)
     })
   },
   getItemDetail: function(req, res) {
     Cart.findOne({
-      sessionId: req.session.sessionId
+      sessionId: req.session.id
     }).then(function(cart) {
       if (!cart) res.json([])
-      else cart.items.find({
+      else CartItem.findOne({
         id: req.params.itemId
       }).then(function(items) {
-        res.json(items)
+        console.log('items', items)
+        CartItem.populateItems([items], function(items) {
+          res.json(items)
+        })
       })
     })
   },
   removeItem: function(req, res) {
-
-    res.json({
-      id: req.session.id
+    CartItem.destroy({
+      id: req.params.itemId
+    }).then(function(item) {
+      res.json(item)
     })
+
   },
-  removeAllItem: function(req, res) {
-    Cart.destroy().then(function() {
+  clearCart: function(req, res) {
+    Cart.destroy({
+      sessionId: req.session.id
+    }).then(function() {
       res.json({
-        message: 'clear all cart'
+        message: 'clear cart'
       })
     })
   },
@@ -127,27 +139,43 @@ module.exports = {
     Coupon.findOne({
       couponCode: req.params.couponCode
     }).then(function(coupon) {
-      if (!coupon) res.json({
-        error: true,
-        message: 'coupon code ' + req.params.couponCode + ' not valid',
-        code: 401
+      if (!coupon) {
+        res.json({
+          error: true,
+          message: 'coupon code ' + req.params.couponCode + ' not valid',
+          code: 401
+        })
+        return false
+      }
+      req.session.couponCode = req.params.couponCode
+      console.log(req.session.id)
+      Cart.findOne({
+        sessionId: req.session.id
       })
+      .populate('items', {
+        select: CartItem.populateFields
+      })
+      .populate('quote', {
+        select: Quote.populateFields
+      })
+      .then(function(cart) {
+        console.log(cart)
+        if(!cart) {
+          res.json({
+            error: true,
+            message: 'session over'
+          })
+          return false
+        }
+        Cart.updateCart(req.session, cart, function(data) {
+          res.json(data)
+        })
+      })
+
     })
 
-  },
-  getQuote: function(req, res) {
-    Cart.findOne({
-      sessionId: req.session.sessionId
-    }).then(function(cart) {
-      res.json({
-        id: req.session.id
-      })
-    })
   },
   order: function(req, res) {
 
-    res.json({
-      id: req.session.id
-    })
   }
 };
